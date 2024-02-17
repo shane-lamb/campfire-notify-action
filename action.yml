@@ -1,23 +1,14 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Add your action's branding here. This will appear on the GitHub Marketplace.
-branding:
-  icon: 'heart'
-  color: 'red'
-
-# Define your inputs here.
+name: Post message to ONCE Campfire chat instance
+description: Get notified of GitHub events by posting messages to a ONCE Campfire chat instance
+author: Shane Lamb
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  messages_url:
+    description: 'Bot URL to post message to room. Format: https://YOUR_DOMAIN/rooms/ROOM_NUMBER/BOT_KEY/messages'
     required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+  topic:
+    description: 'Type of content to include in the message. Options: commit_info, custom'
+    required: true
+    default: commit_info
 
 runs:
   using: node20

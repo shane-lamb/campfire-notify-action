@@ -1,7 +1,41 @@
-/**
- * The entrypoint for the action.
- */
-import { run } from './main'
+import { getInput, setFailed } from '@actions/core'
+import { context } from '@actions/github'
+import { execSync } from 'child_process'
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-run()
+export async function run(): Promise<void> {
+    const messagesUrl = getInput('messages_url')
+    const commits: Commit[] = context.payload.commits
+    if (!commits) {
+        throw Error(
+            'Could not find commit information in payload. You need to use this action from a "push" event context.',
+        )
+    }
+
+    for (const commit of commits) {
+        postCommitMessage(commit, messagesUrl)
+    }
+}
+
+function postCommitMessage(commit: Commit, messagesUrl: string): void {
+    const { owner, repo } = context.repo
+
+    const commitLink = `<a href="${commit.url}">${commit.id}</a>`
+    const repoLink = `<a href="https://github.com/${owner}/${repo}">${owner}/${repo}</a>`
+    const header = `<b>${context.actor}</b> committed ${commitLink} to ${repoLink}:`
+    const commitBody = commit.message.split('\n\n')
+    const commitTitle = `<b>${commitBody.shift()}</b>`
+    const message = [header, commitTitle, ...commitBody]
+        .join('\n\n')
+        .split('\n')
+        .join('<br/>')
+    execSync(`curl -d ${JSON.stringify(message)} ${messagesUrl}`)
+}
+
+// eslint-disable-next-line github/no-then
+run().catch((error) => setFailed(error.message))
+
+export interface Commit {
+    message: string
+    id: string
+    url: string
+}
