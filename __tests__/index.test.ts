@@ -8,12 +8,12 @@ const inputs: { [key: string]: string } = {
 const commits: Commit[] = [
     {
         message: 'commit 1 message',
-        id: 'commit_1_id',
+        id: '7b9448126c1e8ba8909928341f125c3bd62a6cf4',
         url: 'https://commit_1_url',
     },
     {
         message: 'commit 2 title\n\ncommit 2 body',
-        id: 'commit_2_id',
+        id: '6dc1dbc6c572dda545b8c1f3c254ad8de0135023',
         url: 'https://commit_2_url',
     },
 ]
@@ -23,11 +23,11 @@ const repo = {
 }
 const actor = 'shane-lamb'
 
-describe('index', () => {
+describe('Campfire GitHub Action', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
-    it('runs without error', async () => {
+    it('should post commit info to Campfire', async () => {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         require('../src/index')
 
@@ -35,8 +35,8 @@ describe('index', () => {
 
         const actualCall1 = execSync.mock.calls[0][0]
         const expectedCall1 = `
-curl -d "<b>shane-lamb</b> committed 
-<a href=\\"https://commit_1_url\\">commit_1_id</a> to 
+curl -d "<a href=\\"https://github.com/shane-lamb\\">shane-lamb</a> committed 
+<a href=\\"https://commit_1_url\\">7b94481</a> to 
 <a href=\\"https://github.com/shane-lamb/campfire-notify-action\\">shane-lamb/campfire-notify-action</a>:
 <br/><br/><b>commit 1 message</b>" 
 https://campfire.domain
@@ -48,8 +48,8 @@ https://campfire.domain
 
         const actualCall2 = execSync.mock.calls[1][0]
         const expectedCall2 = `
-curl -d "<b>shane-lamb</b> committed 
-<a href=\\"https://commit_2_url\\">commit_2_id</a> to 
+curl -d "<a href=\\"https://github.com/shane-lamb\\">shane-lamb</a> committed 
+<a href=\\"https://commit_2_url\\">6dc1dbc</a> to 
 <a href=\\"https://github.com/shane-lamb/campfire-notify-action\\">shane-lamb/campfire-notify-action</a>:
 <br/><br/><b>commit 2 title</b><br/><br/>
 commit 2 body" 

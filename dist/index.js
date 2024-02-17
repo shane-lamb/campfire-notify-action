@@ -30842,9 +30842,10 @@ async function run() {
 exports.run = run;
 function postCommitMessage(commit, messagesUrl) {
     const { owner, repo } = github_1.context.repo;
-    const commitLink = `<a href="${commit.url}">${commit.id}</a>`;
+    const commitLink = `<a href="${commit.url}">${commit.id.slice(0, 7)}</a>`;
     const repoLink = `<a href="https://github.com/${owner}/${repo}">${owner}/${repo}</a>`;
-    const header = `<b>${github_1.context.actor}</b> committed ${commitLink} to ${repoLink}:`;
+    const actorLink = `<a href="https://github.com/${github_1.context.actor}">${github_1.context.actor}</a>`;
+    const header = `${actorLink} committed ${commitLink} to ${repoLink}:`;
     const commitBody = commit.message.split('\n\n');
     const commitTitle = `<b>${commitBody.shift()}</b>`;
     const message = [header, commitTitle, ...commitBody]
