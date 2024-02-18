@@ -1,124 +1,74 @@
-## Initial Setup
+# Campfire notification GitHub Action
 
-1. :hammer_and_wrench: Install the dependencies
+Get notified of GitHub events (commit pushed, job failed) through an action that posts messages into your ONCE Campfire chat.
 
-   ```bash
-   npm install
-   ```
+### Post commit info on push
+Get a helpful summary in your chat when someone pushes a commit to main. It looks like this:
 
-1. :building_construction: Package the TypeScript for distribution
+![commit message example](docs%2Fcommit-message-example.png)
 
-   ```bash
-   npm run bundle
-   ```
+### Post notification when job fails
 
-1. :white_check_mark: Run the tests
+Coming soon.
 
-   ```bash
-   $ npm test
+## Usage
 
-   PASS  ./index.test.js
-     ✓ throws invalid number (3ms)
-     ✓ wait 500 ms (504ms)
-     ✓ test runs (95ms)
+### Step 1: Create a bot
 
-   ...
-   ```
+Creating a bot through Campfire, you'll end up on a screen like this:
 
-## Update the Action Code
+![bot secret](docs/bot-secret.png)
 
-1. Format, test, and build the action
+Here I've named the bot "GitHub" and given it a suitable icon.
+
+Each room has a unique `curl` command that you can use to post messages to that room.
+
+Locate the room you'd like to use with this action, and then copy the URL portion to use as a secret for the next step.
+
+### Step 2: Create secret in your GitHub repo
+
+You'll need to create a secret in your repo in order to securely pass the necessary details to the action,
+so that it's able to post into the Campfire room.
+
+Save the URL (the last part of the `curl` command, not the whole thing) into a new secret.
+The URL acts as both an endpoint and a key, so no other details are needed.
+For the following examples I've named the secret `CAMPFIRE_MESSAGES_URL`.
+
+### Step 3: Add the action to your workflow
+
+How you add the action to your workflow is based on the event type.
+
+If you're using the `commit_pushed` template, you'll want to trigger a workflow on `push` to your main branch. Here's an example workflow yaml:
+```yaml
+name: Post commit info
+
+on:
+   push:
+      branches: [ main ]
+
+jobs:
+   post-commit-info:
+      runs-on: ubuntu-latest
+
+      steps:
+         - name: Post commit info to Campfire
+           uses: shane-lamb/campfire-notify-action@v1.0.2
+           with:
+              messages_url: ${{ secrets.CAMPFIRE_MESSAGES_URL }}
+              template: commit_pushed
+```
+
+## Development
+
+This repo was initialised using the [typescript-action](https://github.com/actions/typescript-action) GitHub action template.
+
+### Format, test, and build the action
 
    ```bash
    npm run all
    ```
 
-   > [!WARNING]
-   >
-   > This step is important! It will run [`ncc`](https://github.com/vercel/ncc)
-   > to build the final JavaScript action code with all dependencies included.
-   > If you do not run this step, your action will not work correctly when it is
-   > used in a workflow. This step also includes the `--license` option for
-   > `ncc`, which will create a license file for all of the production node
-   > modules used in your project.
-
-1. Commit your changes
-
-   ```bash
-   git add .
-   git commit -m "My first action is ready!"
-   ```
-
-1. Push them to your repository
-
-   ```bash
-   git push -u origin releases/v1
-   ```
-
-1. Create a pull request and get feedback on your action
-1. Merge the pull request into the `main` branch
-
-Your action is now published! :rocket:
-
-For information about versioning your action, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-## Validate the Action
-
-You can now validate the action by referencing it in a workflow file. For
-example, [`ci.yml`](./.github/workflows/ci.yml) demonstrates how to reference an
-action in the same repository.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: ./
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-For example workflow runs, check out the
-[Actions tab](https://github.com/actions/typescript-action/actions)! :rocket:
-
-## Usage
-
-After testing, you can create version tag(s) that developers can use to
-reference different stable versions of your action. For more information, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-To include the action in a workflow in another repository, you can use the
-`uses` syntax with the `@` symbol to reference a specific branch, tag, or commit
-hash.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: actions/typescript-action@v1 # Commit with the `v1` tag
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-## Publishing a New Release
+### Publishing a New Release
 
 This project includes a helper script, [`script/release`](./script/release)
 designed to streamline the process of tagging and pushing new releases for

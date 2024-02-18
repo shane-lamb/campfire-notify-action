@@ -1,39 +1,69 @@
 import * as core from '@actions/core'
-import { Commit } from '../src/index'
+import { run } from '../src/main'
+import { execSync } from 'child_process'
+
+jest.mock('@actions/github', () => ({
+    context: {
+        payload: {
+            commits: [
+                {
+                    message: 'commit 1 message',
+                    id: '7b9448126c1e8ba8909928341f125c3bd62a6cf4',
+                    url: 'https://commit_1_url',
+                },
+                {
+                    message: 'commit 2 title\n\ncommit 2 body',
+                    id: '6dc1dbc6c572dda545b8c1f3c254ad8de0135023',
+                    url: 'https://commit_2_url',
+                },
+            ],
+            head_commit: {
+                message: 'commit 2 title\n\ncommit 2 body',
+            },
+            workflow_job: {
+                name: 'build and push',
+                conclusion: 'failure',
+                workflow_name: 'CI',
+                html_url: 'https://job_url',
+                steps: [
+                    {
+                        name: 'test',
+                        status: 'success',
+                    },
+                    {
+                        name: 'build',
+                        status: 'failure',
+                    },
+                    {
+                        name: 'push',
+                        status: 'skipped',
+                    },
+                ],
+            },
+        },
+        repo: {
+            owner: 'shane-lamb',
+            repo: 'campfire-notify-action',
+        },
+        actor: 'shane-lamb',
+    },
+}))
 
 const inputs: { [key: string]: string } = {
     messages_url: 'https://campfire.domain',
-    topic: 'commit_info',
 }
-const commits: Commit[] = [
-    {
-        message: 'commit 1 message',
-        id: '7b9448126c1e8ba8909928341f125c3bd62a6cf4',
-        url: 'https://commit_1_url',
-    },
-    {
-        message: 'commit 2 title\n\ncommit 2 body',
-        id: '6dc1dbc6c572dda545b8c1f3c254ad8de0135023',
-        url: 'https://commit_2_url',
-    },
-]
-const repo = {
-    owner: 'shane-lamb',
-    repo: 'campfire-notify-action',
-}
-const actor = 'shane-lamb'
 
 describe('Campfire GitHub Action', () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
     it('should post commit info to Campfire', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('../src/index')
+        inputs.template = 'commit_pushed'
+
+        await run()
 
         expect(execSync).toHaveBeenCalledTimes(2)
 
-        const actualCall1 = execSync.mock.calls[0][0]
         const expectedCall1 = `
 curl -d "<a href=\\"https://github.com/shane-lamb\\">shane-lamb</a> committed 
 <a href=\\"https://commit_1_url\\">7b94481</a> to 
@@ -44,9 +74,8 @@ https://campfire.domain
             .trim()
             .split('\n')
             .join('')
-        expect(actualCall1).toEqual(expectedCall1)
+        expect(calledWith(execSync)).toEqual(expectedCall1)
 
-        const actualCall2 = execSync.mock.calls[1][0]
         const expectedCall2 = `
 curl -d "<a href=\\"https://github.com/shane-lamb\\">shane-lamb</a> committed 
 <a href=\\"https://commit_2_url\\">6dc1dbc</a> to 
@@ -58,26 +87,39 @@ https://campfire.domain
             .trim()
             .split('\n')
             .join('')
-        expect(actualCall2).toEqual(expectedCall2)
+        expect(calledWith(execSync, 1)).toEqual(expectedCall2)
+    })
+    it('should notify of failed job', async () => {
+        inputs.template = 'job_failed'
+
+        await run()
+
+        expect(execSync).toHaveBeenCalledTimes(1)
+
+        const expectedCall = `
+curl -d "❌ <b>commit 2 title</b><br/><br/>
+CI → <a href=\\"https://job_url\\">build and push</a> → build" 
+https://campfire.domain
+        `
+            .trim()
+            .split('\n')
+            .join('')
+        expect(calledWith(execSync)).toEqual(expectedCall)
     })
 })
-
-const execSync = jest.fn()
-jest.mock('child_process', () => ({
-    execSync,
-}))
 
 jest.spyOn(core, 'getInput').mockImplementation((key) => {
     if (!inputs[key]) throw new Error(`Unknown input: ${key}`)
     return inputs[key]
 })
 
-jest.mock('@actions/github', () => ({
-    context: {
-        payload: {
-            commits,
-        },
-        repo,
-        actor,
-    },
-}))
+jest.mock('child_process', () => {
+    return {
+        execSync: jest.fn(),
+    }
+})
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function calledWith(mock: unknown, index = 0): any {
+    return (mock as jest.Mock).mock.calls[index][0]
+}

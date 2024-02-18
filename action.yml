@@ -1,14 +1,13 @@
-name: Post message to ONCE Campfire chat instance
-description: Get notified of GitHub events by posting messages to a ONCE Campfire chat instance
+name: Post event message to Campfire
+description: Notifies of GitHub events by posting messages to a ONCE Campfire chat instance via bot account
 author: Shane Lamb
 inputs:
   messages_url:
     description: 'Bot URL to post message to room. Format: https://YOUR_DOMAIN/rooms/ROOM_NUMBER/BOT_KEY/messages'
     required: true
-  topic:
-    description: 'Type of content to include in the message. Options: commit_info, custom'
+  template:
+    description: 'Defines the event context/content of the post. Options: commit_pushed, job_failed'
     required: true
-    default: commit_info
 
 runs:
   using: node20

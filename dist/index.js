@@ -28929,6 +28929,73 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 399:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const core_1 = __nccwpck_require__(2186);
+const github_1 = __nccwpck_require__(5438);
+const child_process_1 = __nccwpck_require__(2081);
+async function run() {
+    const template = (0, core_1.getInput)('template');
+    if (template === 'commit_pushed') {
+        postCommitMessages();
+    }
+    else if (template === 'job_failed') {
+        postJobFailureMessage();
+    }
+    else {
+        throw Error(`Invalid template specified: ${template}`);
+    }
+}
+exports.run = run;
+function postJobFailureMessage() {
+    const { payload } = github_1.context;
+    const headCommit = payload.head_commit;
+    const job = payload.workflow_job;
+    const runName = headCommit.message.split('\n\n')[0];
+    const header = `❌ <b>${runName}</b>`;
+    const jobLink = `<a href="${job.html_url}">${job.name}</a>`;
+    const steps = job.steps;
+    const stepName = steps.find((step) => step.status === 'failure')?.name;
+    const breadcrumbs = `${job.workflow_name} → ${jobLink} → ${stepName}`;
+    const message = [header, breadcrumbs].join('<br/><br/>');
+    postMessage(message);
+}
+function postCommitMessages() {
+    const commits = github_1.context.payload.commits;
+    if (!commits) {
+        throw Error('Could not find commit information in payload. You need to use this action from a "push" event context.');
+    }
+    for (const commit of commits) {
+        postCommitMessage(commit);
+    }
+}
+function postCommitMessage(commit) {
+    const { owner, repo } = github_1.context.repo;
+    const commitLink = `<a href="${commit.url}">${commit.id.slice(0, 7)}</a>`;
+    const repoLink = `<a href="https://github.com/${owner}/${repo}">${owner}/${repo}</a>`;
+    const actorLink = `<a href="https://github.com/${github_1.context.actor}">${github_1.context.actor}</a>`;
+    const header = `${actorLink} committed ${commitLink} to ${repoLink}:`;
+    const commitBody = commit.message.split('\n\n');
+    const commitTitle = `<b>${commitBody.shift()}</b>`;
+    const message = [header, commitTitle, ...commitBody]
+        .join('\n\n')
+        .split('\n')
+        .join('<br/>');
+    postMessage(message);
+}
+function postMessage(message) {
+    const messagesUrl = (0, core_1.getInput)('messages_url');
+    (0, child_process_1.execSync)(`curl -d ${JSON.stringify(message)} ${messagesUrl}`);
+}
+
+
+/***/ }),
+
 /***/ 9491:
 /***/ ((module) => {
 
@@ -30825,37 +30892,10 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
 const core_1 = __nccwpck_require__(2186);
-const github_1 = __nccwpck_require__(5438);
-const child_process_1 = __nccwpck_require__(2081);
-async function run() {
-    const messagesUrl = (0, core_1.getInput)('messages_url');
-    const commits = github_1.context.payload.commits;
-    if (!commits) {
-        throw Error('Could not find commit information in payload. You need to use this action from a "push" event context.');
-    }
-    for (const commit of commits) {
-        postCommitMessage(commit, messagesUrl);
-    }
-}
-exports.run = run;
-function postCommitMessage(commit, messagesUrl) {
-    const { owner, repo } = github_1.context.repo;
-    const commitLink = `<a href="${commit.url}">${commit.id.slice(0, 7)}</a>`;
-    const repoLink = `<a href="https://github.com/${owner}/${repo}">${owner}/${repo}</a>`;
-    const actorLink = `<a href="https://github.com/${github_1.context.actor}">${github_1.context.actor}</a>`;
-    const header = `${actorLink} committed ${commitLink} to ${repoLink}:`;
-    const commitBody = commit.message.split('\n\n');
-    const commitTitle = `<b>${commitBody.shift()}</b>`;
-    const message = [header, commitTitle, ...commitBody]
-        .join('\n\n')
-        .split('\n')
-        .join('<br/>');
-    (0, child_process_1.execSync)(`curl -d ${JSON.stringify(message)} ${messagesUrl}`);
-}
+const main_1 = __nccwpck_require__(399);
 // eslint-disable-next-line github/no-then
-run().catch((error) => (0, core_1.setFailed)(error.message));
+(0, main_1.run)().catch((error) => (0, core_1.setFailed)(error.message));
 
 })();
 
