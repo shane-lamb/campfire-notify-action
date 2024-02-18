@@ -28959,13 +28959,10 @@ exports.run = run;
 function postJobFailureMessage() {
     const { payload } = github_1.context;
     const headCommit = payload.head_commit;
-    const job = payload.workflow_job;
     const runName = headCommit.message.split('\n\n')[0];
     const header = `❌ <b>${runName}</b>`;
-    const jobLink = `<a href="${job.html_url}">${job.name}</a>`;
-    const steps = job.steps;
-    const stepName = steps.find((step) => step.status === 'failure')?.name;
-    const breadcrumbs = `${job.workflow_name} → ${jobLink} → ${stepName}`;
+    const runLink = `<a href="${payload.repository?.html_url}/actions/runs/${github_1.context.runId}">${github_1.context.workflow}</a>`;
+    const breadcrumbs = `${runLink} → ${github_1.context.job}`;
     const message = [header, breadcrumbs].join('<br/><br/>');
     postMessage(message);
 }

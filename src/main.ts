@@ -1,7 +1,7 @@
 import { getInput, info } from '@actions/core'
 import { context } from '@actions/github'
 import { execSync } from 'child_process'
-import { Commit, JobStep } from './types'
+import { Commit } from './types'
 
 export async function run(): Promise<void> {
     const template = getInput('template')
@@ -21,13 +21,10 @@ export async function run(): Promise<void> {
 function postJobFailureMessage(): void {
     const { payload } = context
     const headCommit: Commit = payload.head_commit
-    const job = payload.workflow_job
     const runName = headCommit.message.split('\n\n')[0]
     const header = `❌ <b>${runName}</b>`
-    const jobLink = `<a href="${job.html_url}">${job.name}</a>`
-    const steps: JobStep[] = job.steps
-    const stepName = steps.find((step) => step.status === 'failure')?.name
-    const breadcrumbs = `${job.workflow_name} → ${jobLink} → ${stepName}`
+    const runLink = `<a href="${payload.repository?.html_url}/actions/runs/${context.runId}">${context.workflow}</a>`
+    const breadcrumbs = `${runLink} → ${context.job}`
     const message = [header, breadcrumbs].join('<br/><br/>')
     postMessage(message)
 }

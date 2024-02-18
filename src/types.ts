@@ -3,8 +3,3 @@ export interface Commit {
     id: string
     url: string
 }
-
-export interface JobStep {
-    name: string
-    status: 'failure' | 'skipped' | 'success' | 'cancelled' | null
-}

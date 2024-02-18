@@ -20,25 +20,8 @@ jest.mock('@actions/github', () => ({
             head_commit: {
                 message: 'commit 2 title\n\ncommit 2 body',
             },
-            workflow_job: {
-                name: 'build and push',
-                conclusion: 'failure',
-                workflow_name: 'CI',
-                html_url: 'https://job_url',
-                steps: [
-                    {
-                        name: 'test',
-                        status: 'success',
-                    },
-                    {
-                        name: 'build',
-                        status: 'failure',
-                    },
-                    {
-                        name: 'push',
-                        status: 'skipped',
-                    },
-                ],
+            repository: {
+                html_url: 'https://github.com/my-org/my-repo',
             },
         },
         repo: {
@@ -46,6 +29,9 @@ jest.mock('@actions/github', () => ({
             repo: 'campfire-notify-action',
         },
         actor: 'shane-lamb',
+        workflow: 'CI',
+        job: 'test',
+        runId: 7946222982,
     },
 }))
 
@@ -98,7 +84,7 @@ https://campfire.domain
 
         const expectedCall = `
 curl -d "❌ <b>commit 2 title</b><br/><br/>
-CI → <a href=\\"https://job_url\\">build and push</a> → build" 
+<a href=\\"https://github.com/my-org/my-repo/actions/runs/7946222982\\">CI</a> → test" 
 https://campfire.domain
         `
             .trim()
