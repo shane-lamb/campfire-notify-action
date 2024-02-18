@@ -23,8 +23,8 @@ function postJobFailureMessage(): void {
     const headCommit: Commit = payload.head_commit
     const runName = headCommit.message.split('\n\n')[0]
     const header = `❌ <b>${runName}</b>`
-    const runLink = `<a href="${payload.repository?.html_url}/actions/runs/${context.runId}">${context.workflow}</a>`
-    const breadcrumbs = `${runLink} → ${context.job}`
+    const runLink = `<a href="${payload.repository?.html_url}/actions/runs/${context.runId}">Job failed</a>`
+    const breadcrumbs = `${runLink}: ${context.workflow} → ${context.job}`
     const message = [header, breadcrumbs].join('<br/><br/>')
     postMessage(message)
 }

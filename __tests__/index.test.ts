@@ -84,7 +84,8 @@ https://campfire.domain
 
         const expectedCall = `
 curl -d "❌ <b>commit 2 title</b><br/><br/>
-<a href=\\"https://github.com/my-org/my-repo/actions/runs/7946222982\\">CI</a> → test" 
+<a href=\\"https://github.com/my-org/my-repo/actions/runs/7946222982\\">Job failed</a>: 
+CI → test" 
 https://campfire.domain
         `
             .trim()
