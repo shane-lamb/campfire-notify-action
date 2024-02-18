@@ -28940,13 +28940,16 @@ const core_1 = __nccwpck_require__(2186);
 const github_1 = __nccwpck_require__(5438);
 const child_process_1 = __nccwpck_require__(2081);
 async function run() {
-    (0, core_1.debug)(JSON.stringify(github_1.context, null, 2));
     const template = (0, core_1.getInput)('template');
     if (template === 'commit_pushed') {
         postCommitMessages();
     }
     else if (template === 'job_failed') {
         postJobFailureMessage();
+    }
+    else if (template === 'no_op') {
+        (0, core_1.info)('In no-op mode. Logging GitHub context object.');
+        (0, core_1.info)(JSON.stringify(github_1.context, null, 2));
     }
     else {
         throw Error(`Invalid template specified: ${template}`);

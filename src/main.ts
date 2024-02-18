@@ -1,17 +1,18 @@
-import { getInput, debug } from '@actions/core'
+import { getInput, info } from '@actions/core'
 import { context } from '@actions/github'
 import { execSync } from 'child_process'
 import { Commit, JobStep } from './types'
 
 export async function run(): Promise<void> {
-    debug(JSON.stringify(context, null, 2))
-
     const template = getInput('template')
 
     if (template === 'commit_pushed') {
         postCommitMessages()
     } else if (template === 'job_failed') {
         postJobFailureMessage()
+    } else if (template === 'no_op') {
+        info('In no-op mode. Logging GitHub context object.')
+        info(JSON.stringify(context, null, 2))
     } else {
         throw Error(`Invalid template specified: ${template}`)
     }
