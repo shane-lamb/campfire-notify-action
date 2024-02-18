@@ -1,9 +1,11 @@
-import { getInput } from '@actions/core'
+import { getInput, debug } from '@actions/core'
 import { context } from '@actions/github'
 import { execSync } from 'child_process'
 import { Commit, JobStep } from './types'
 
 export async function run(): Promise<void> {
+    debug(JSON.stringify(context, null, 2))
+
     const template = getInput('template')
 
     if (template === 'commit_pushed') {
