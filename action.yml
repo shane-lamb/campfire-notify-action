@@ -1,4 +1,4 @@
-name: Post event message to Campfire
+name: Post message to Campfire
 description: Notifies of GitHub events by posting messages to a ONCE Campfire chat instance via bot account
 author: Shane Lamb
 inputs:
