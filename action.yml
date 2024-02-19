@@ -1,6 +1,9 @@
 name: Post message to Campfire
 description: Notifies of GitHub events by posting messages to a ONCE Campfire chat instance via bot account
 author: Shane Lamb
+branding:
+  icon: message-square
+  color: yellow
 inputs:
   messages_url:
     description: 'Bot URL to post message to room. Format: https://YOUR_DOMAIN/rooms/ROOM_NUMBER/BOT_KEY/messages'
