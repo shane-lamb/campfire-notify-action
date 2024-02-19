@@ -3,13 +3,16 @@
 Get notified of GitHub events (commit pushed, job failed) through an action that posts messages into your ONCE Campfire chat.
 
 ### Post commit info on push
-Get a helpful summary in your chat when someone pushes a commit to main. It looks like this:
+Use the `commit_pushed` template to get a helpful summary in chat when someone pushes a commit to main. It looks like this:
 
 ![commit message example](docs%2Fcommit-message-example.png)
 
-### Post notification when job fails
+### Post notification when GitHub workflow job fails
 
-Coming soon.
+If my workflow failed after pushing the commit from the previous screenshot,
+here's how the notification message would look using the `job_failed` template:
+
+![job failed message example.png](docs%2Fjob-failed-message-example.png)
 
 ## Usage
 
@@ -19,7 +22,7 @@ Creating a bot through Campfire, you'll end up on a screen like this:
 
 ![bot secret](docs/bot-secret.png)
 
-Here I've named the bot "GitHub" and given it a suitable icon.
+Here I've named the bot "GitHub" and uploaded a matching icon as the profile picture.
 
 Each room has a unique `curl` command that you can use to post messages to that room.
 
@@ -36,9 +39,15 @@ For the following examples I've named the secret `CAMPFIRE_MESSAGES_URL`.
 
 ### Step 3: Add the action to your workflow
 
-How you add the action to your workflow is based on the event type.
+How you add the action to your workflow is based on the desired template/event type.
 
-If you're using the `commit_pushed` template, you'll want to trigger a workflow on `push` to your main branch. Here's an example workflow yaml:
+#### commit_pushed
+
+If you're using the `commit_pushed` template, you'll want to trigger a workflow on `push` to your main branch.
+
+It's convenient to have a dedicated workflow yaml file for this purpose. Here's an example:
+
+`.github/workflows/post-commit-info.yml`:
 ```yaml
 name: Post commit info
 
@@ -52,11 +61,40 @@ jobs:
 
       steps:
          - name: Post commit info to Campfire
-           uses: shane-lamb/campfire-notify-action@v1.0.2
+           uses: shane-lamb/campfire-notify-action@v1.1.4
            with:
               messages_url: ${{ secrets.CAMPFIRE_MESSAGES_URL }}
               template: commit_pushed
 ```
+
+You can change the branch name if you're not using `main` as your development branch.
+
+#### job_failed
+
+For the `job_failed` template, instead of creating a new workflow, you'll want to add a step at the end of each job you'd like to monitor for failure.
+
+Here's how you can add the action into the `steps` list of your existing job/s:
+
+```yaml
+steps:
+   - name: Checkout
+     uses: actions/checkout@v4
+
+   - name: Do stuff that might fail
+     uses: ...
+
+   - name: Post job failure details to Campfire
+     if: failure() && github.ref == 'refs/heads/main'
+     uses: shane-lamb/campfire-notify-action@v1.1.4
+     with:
+        messages_url: ${{ secrets.CAMPFIRE_MESSAGES_URL }}
+        template: job_failed
+```
+
+The `if` condition ensures that it'll only notify if the job has failed.
+
+This example has an additional condition to only notify if the branch is `main`,
+as you might not want the noise coming from feature branch builds.
 
 ## Development
 
