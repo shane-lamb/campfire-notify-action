@@ -61,7 +61,7 @@ jobs:
 
       steps:
          - name: Post commit info to Campfire
-           uses: shane-lamb/campfire-notify-action@v1.1.4
+           uses: shane-lamb/campfire-notify-action@v1.1.5
            with:
               messages_url: ${{ secrets.CAMPFIRE_MESSAGES_URL }}
               template: commit_pushed
@@ -85,7 +85,7 @@ steps:
 
    - name: Post job failure details to Campfire
      if: failure() && github.ref == 'refs/heads/main'
-     uses: shane-lamb/campfire-notify-action@v1.1.4
+     uses: shane-lamb/campfire-notify-action@v1.1.5
      with:
         messages_url: ${{ secrets.CAMPFIRE_MESSAGES_URL }}
         template: job_failed
